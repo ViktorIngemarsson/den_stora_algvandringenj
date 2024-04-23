@@ -1,9 +1,9 @@
 # %%
 import os
-import cv2
 import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from ultralytics import YOLO
 
 N_IMAGES = 20
 TRIGGER_ANIMALS = set(["horse", "elephant", "cow", "bear"])
