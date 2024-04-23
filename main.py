@@ -4,6 +4,7 @@ import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from ultralytics import YOLO
+import shutil
 
 N_IMAGES = 20
 TRIGGER_ANIMALS = set(["horse", "elephant", "cow", "bear"])
@@ -27,8 +28,13 @@ def predict(model):
 
 def delete_old_images():
     for file in os.listdir("runs/detect/predict"):
-        if file.endswith(".png"):
-            os.remove(file)
+        os.remove(file)
+
+
+def move_possible_moose_files():
+    possible_moose_images = os.listdir("result/")
+    for index, file in enumerate(os.listdir("runs/detect/predict")):
+        shutil.move(file, f"result/{len(possible_moose_images)+index+1}.png")
 
 
 def capture_frames(interval, stream_url):
@@ -49,6 +55,7 @@ def capture_frames(interval, stream_url):
         should_email = predict(model=model)
         if should_email:
             print("Animal JaoI")
+            move_possible_moose_files()
         if not should_email:
             delete_old_images()
 
