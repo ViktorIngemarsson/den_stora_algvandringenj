@@ -1,63 +1,57 @@
 # %%
+import os
 import cv2
 import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 
+N_IMAGES = 20
+TRIGGER_ANIMALS = set(["horse", "elephant", "cow", "bear"])
+N_IMAGES_WITH_TRIGGER_ANIMALS_TO_TRIGGER = 3
 
-# Function to capture frames from the livestream at intervals
+
+def predict(model):
+    results = model(["./input_algar/{i}.png" for i in range(N_IMAGES)])
+    total_results = []
+    for result in results:
+        result_animal = 0
+        for box in result.boxes:
+            name_index = int(box.cls[0].item())
+            if result.names[name_index] in TRIGGER_ANIMALS:
+                result_animal = 1
+        total_results.append(result_animal)
+    if total_results > 3:
+        return True
+    return False
+
+
+def delete_old_images():
+    for file in os.listdir("runs/detect/predict"):
+        if file.endswith(".png"):
+            os.remove(file)
+
+
 def capture_frames(interval, stream_url):
-    # Initialize Selenium WebDriver
-    driver = webdriver.Chrome()  # You need to have chromedriver installed
+    model = YOLO("models/yolov8x.pt")
+    driver = webdriver.Chrome()
     driver.get(stream_url)
-    # Wait for the play button to appear and click it
-    driver.implicitly_wait(2)
-    time.sleep(5)  # Adjust as needed
-
+    time.sleep(5)
     accept_button = driver.find_element(By.CLASS_NAME, "c6ead1144")
     driver.execute_script("arguments[0].click();", accept_button)
-
-    # accept_button.click()
-    time.sleep(5)  # Adjust as needed
-
-    play_button = driver.find_element(
-        By.CLASS_NAME, "sc-6bf77590-2"
-    )  # Use the class name of the play button
+    time.sleep(5)
+    play_button = driver.find_element(By.CLASS_NAME, "sc-6bf77590-2")
     driver.execute_script("arguments[0].click();", play_button)
 
-    # Allow some time for the livestream to start
-    time.sleep(5)  # Adjust as needed
-    driver.save_screenshot("ss.png")
-    # Initialize OpenCV capture
-    current_url = driver.current_url
-
-    cap = cv2.VideoCapture(current_url, cv2.CAP_FFMPEG)
-    if not cap.isOpened():
-        print("Error: Failed to open video stream")
-        return
-
-    frame_count = 0
-
+    time.sleep(5)
     while True:
-        ret, frame = cap.read()
-
-        # Check if the frame is captured successfully
-        if not ret:
-            print("Error: Failed to capture frame")
-            break
-
-        # Save the frame
-        frame_count += 1
-        filename = f"frame_{frame_count}.jpg"
-        cv2.imwrite(filename, frame)
-        print(f"Saved frame {frame_count}")
-
-        # Wait for the specified interval
-        time.sleep(interval)
-
-    cap.release()
-    cv2.destroyAllWindows()
-    driver.quit()
+        for i in range(N_IMAGES):
+            driver.save_screenshot(f"/input_algar/{i}.png")
+            time.sleep(interval)
+        should_email = predict(model=model)
+        if should_email:
+            print("Animal JaoI")
+        if not should_email:
+            delete_old_images()
 
 
 # Example usage
@@ -89,7 +83,7 @@ im1 = Image.open(f"./input_algar/10.png")
 results = model.predict(source=im1, save=True)
 
 # %%
-results = model("./input_algar/10.png")
+results = model(["./input_algar/10.png", "./input_algar/9.png"])
 # %%
 for r in results:
     for box in r.boxes:
