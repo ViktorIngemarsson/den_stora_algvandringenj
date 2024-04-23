@@ -41,7 +41,6 @@ def capture_frames(interval, stream_url):
     time.sleep(5)
     play_button = driver.find_element(By.CLASS_NAME, "sc-6bf77590-2")
     driver.execute_script("arguments[0].click();", play_button)
-
     time.sleep(5)
     while True:
         for i in range(N_IMAGES):
@@ -61,31 +60,3 @@ stream_url = (
 )
 interval = 3  # Interval in seconds
 capture_frames(interval, stream_url)
-
-# %%
-#### Identify moose
-
-from ultralytics import YOLO
-from PIL import Image
-import cv2
-
-model = YOLO("models/yolov8x.pt")
-# %%
-# accepts all formats - image/dir/Path/URL/video/PIL/ndarray. 0 for webcam
-results = model.predict(source="0")
-results = model.predict(
-    source="folder", show=True
-)  # Display preds. Accepts all YOLO predict arguments
-
-# %%
-# from PIL
-im1 = Image.open(f"./input_algar/10.png")
-results = model.predict(source=im1, save=True)
-
-# %%
-results = model(["./input_algar/10.png", "./input_algar/9.png"])
-# %%
-for r in results:
-    for box in r.boxes:
-        print(box.cls[0])
-# %%
