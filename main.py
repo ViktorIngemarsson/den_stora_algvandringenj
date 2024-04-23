@@ -53,8 +53,6 @@ def capture_frames(interval, stream_url):
             delete_old_images()
 
 
-# Example usage
-
 stream_url = (
     "https://www.svtplay.se/video/jN3XL2B/den-stora-algvandringen/idag-00-00?id=jN3XL2B"
 )
